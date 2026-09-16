@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #f3efe6;
+  --ink: #1c1915;
+  --rust: #c45c26;
+  --line: rgba(28, 25, 21, 0.14);
+  --muted: #8a8174;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-rust: var(--rust);
+  --color-line: var(--line);
+  --color-muted: var(--muted);
+  --font-sans: var(--font-dm-sans);
+  --font-serif: var(--font-instrument);
+}
+
+html,
+body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-serif {
+  font-family: var(--font-instrument), ui-serif, Georgia, serif;
+}
