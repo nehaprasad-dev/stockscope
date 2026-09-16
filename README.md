@@ -114,8 +114,3 @@ npx tsx scripts/verify-product.ts # check stored scores vs the formula
 
 ---
 
-## Not in v1
-
-No broker login, no orders, no portfolio, no accounts, no chatbot, no backtesting, no options.
-
-Sir’s product, in one sentence: **a Nifty 500 research dashboard that scores stocks, ranks who stands out, explains why, and points back to sources.**
