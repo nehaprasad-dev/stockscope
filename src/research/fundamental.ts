@@ -1,0 +1,1 @@
+export { fundamentalFromQuote } from "./collect";
