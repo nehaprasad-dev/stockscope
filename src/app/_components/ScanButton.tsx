@@ -38,7 +38,7 @@ export function ScanButton({ busy }: { busy: boolean }) {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok || body.scan?.status === "failed") {
-        setError(body.scan?.error ?? "Scan could not finish.");
+        setError(body.error ?? body.scan?.error ?? "Scan could not finish.");
       }
     } catch {
       setError("Scan could not start.");
@@ -78,8 +78,8 @@ export function ScanButton({ busy }: { busy: boolean }) {
       {error ? <p className="text-sm text-rust">{error}</p> : null}
       <p className="max-w-md text-xs leading-5 text-ink/55">
         Starts with a cheap bulk screen, then deep-scores a shortlist. Default is 10
-        stocks so research credits are not wasted. Full 500 is available after the
-        pipeline is trusted.
+        stocks. On Vercel use 1 or 10 — a full 500 scan needs a longer timeout, so run
+        that locally.
       </p>
     </div>
   );

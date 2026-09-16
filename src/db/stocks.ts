@@ -1,18 +1,22 @@
+import { ensureDb } from "./ensure";
 import { prisma } from "./prisma";
 
-export function getStocks() {
+export async function getStocks() {
+  await ensureDb();
   return prisma.stock.findMany({
     where: { isActive: true },
     orderBy: { symbol: "asc" },
   });
 }
 
-export function getStock(symbol: string) {
+export async function getStock(symbol: string) {
+  await ensureDb();
   return prisma.stock.findUnique({
     where: { symbol: symbol.toUpperCase() },
   });
 }
 
-export function countStocks() {
+export async function countStocks() {
+  await ensureDb();
   return prisma.stock.count({ where: { isActive: true } });
 }

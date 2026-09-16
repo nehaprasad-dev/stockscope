@@ -1,4 +1,5 @@
 import { latestScan } from "@/db/scans";
+import { ensureDb } from "@/db/ensure";
 import { latestSnapshots, snapshotsForScan } from "@/db/snapshots";
 import { countStocks } from "@/db/stocks";
 import type { RankedStock } from "@/research/types";
@@ -24,6 +25,7 @@ function toRow(snapshot: Awaited<ReturnType<typeof latestSnapshots>>[number]): R
 
 export async function getDashboard(view: "all" | "10" | "25" | "50" = "10") {
   try {
+    await ensureDb();
     const [universeCount, scan] = await Promise.all([countStocks(), latestScan()]);
     const raw = scan
       ? await snapshotsForScan(scan.id)

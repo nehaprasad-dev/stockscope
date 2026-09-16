@@ -100,6 +100,22 @@ npx tsx scripts/verify-product.ts # check stored scores vs the formula
 
 ---
 
+## Vercel
+
+The screenshot error (`Universe is empty` + `POST /api/scan 500`) happens because Vercel has **no local sqlite file**. Serverless also cannot write `prisma/dev.db`.
+
+This app now:
+
+- creates a sqlite file under `/tmp` on Vercel
+- seeds the Nifty 500 list on first request
+- lets you scan **1 or 10** stocks (a full 500 scan times out on the hobby plan)
+
+Redeploy after pulling these changes. First page load may take a few seconds while it seeds.
+
+Scan results in `/tmp` go away when the serverless instance is recycled. For a durable production database you’d switch to Postgres later.
+
+---
+
 ## What’s in the repo
 
 | Area | Role |

@@ -1,4 +1,5 @@
 import { createScanRun, runningScan, updateScanRun } from "@/db/scans";
+import { ensureDb } from "@/db/ensure";
 import { prisma } from "@/db/prisma";
 import {
   collectQuotes,
@@ -57,11 +58,13 @@ async function pickUniverse(limit: number) {
 }
 
 export async function runScan(options: ScanOptions = {}) {
+  await ensureDb();
   await markStaleScans();
   const existing = await runningScan();
   if (existing) return existing;
 
-  const limit = Math.min(Math.max(options.limit ?? 10, 1), 500);
+  const cap = process.env.VERCEL ? 10 : 500;
+  const limit = Math.min(Math.max(options.limit ?? 10, 1), cap);
   const shortlistSize = Math.min(Math.max(options.shortlistSize ?? 10, 1), 50);
 
   const scan = await createScanRun();

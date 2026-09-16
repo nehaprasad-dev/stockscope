@@ -37,6 +37,7 @@ export async function vaayaRun(opts: {
 }
 
 export async function researchShortlist(symbols: string[]) {
+  if (process.env.VERCEL) return null;
   if (!vaayaConfigured() || symbols.length === 0) return null;
   const query = [
     "Research-only, not investment advice.",

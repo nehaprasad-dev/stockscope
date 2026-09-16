@@ -52,7 +52,8 @@ export default async function Home({
           </p>
           {data.universeCount === 0 ? (
             <p className="mt-4 text-sm text-rust">
-              Universe is empty. Run <code>npx prisma db push && npm run db:seed</code>.
+              Could not load the Nifty 500 list. Refresh once — production seeds it
+              automatically.
             </p>
           ) : null}
         </div>

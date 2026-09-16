@@ -109,9 +109,12 @@ export function fundamentalFromQuote(
 
 export async function enrichShortlistCharts(symbols: string[]) {
   const charts = new Map<string, ChartPoint[]>();
-  for (const symbol of symbols) {
-    charts.set(symbol, await fetchChart(symbol));
-    await new Promise((r) => setTimeout(r, 150));
+  const batch = process.env.VERCEL ? 5 : 1;
+  for (let i = 0; i < symbols.length; i += batch) {
+    const slice = symbols.slice(i, i + batch);
+    const results = await Promise.all(slice.map((symbol) => fetchChart(symbol)));
+    slice.forEach((symbol, j) => charts.set(symbol, results[j] ?? []));
+    if (!process.env.VERCEL) await new Promise((r) => setTimeout(r, 150));
   }
   const returns = [...charts.entries()]
     .map(([symbol, pts]) => ({ symbol, ret: threeMonthReturn(pts) }))

@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  outputFileTracingIncludes: {
+    "/": ["./data/**", "./src/stocks/nifty500.json"],
+    "/api/**": ["./data/**", "./src/stocks/nifty500.json"],
+  },
 };
 
 export default nextConfig;
