@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Stock {
+  id         String          @id @default(cuid())
+  symbol     String          @unique
+  name       String
+  sector     String?
+  exchange   String          @default("NSE")
+  website    String?
+  isin       String?
+  isActive   Boolean         @default(true)
+  snapshots  StockSnapshot[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+}
+
+model ScanRun {
+  id                String          @id @default(cuid())
+  status            String          @default("queued")
+  phase             String?
+  startedAt         DateTime        @default(now())
+  completedAt       DateTime?
+  stocksAnalyzed    Int             @default(0)
+  stocksShortlisted Int             @default(0)
+  error             String?
+  snapshots         StockSnapshot[]
+}
+
+model StockSnapshot {
+  id                String    @id @default(cuid())
+  stockId           String
+  stock             Stock     @relation(fields: [stockId], references: [id])
+  scanRunId         String?
+  scanRun           ScanRun?  @relation(fields: [scanRunId], references: [id])
+  price             Float?
+  technicalData     String?
+  fundamentalData   String?
+  researchData      String?
+  technicalScore    Float?
+  fundamentalScore  Float?
+  riskScore         Float?
+  overallScore      Float?
+  confidence        Float?
+  reason            String?
+  riskSummary       String?
+  scoredAt          DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@index([stockId, scoredAt])
+  @@index([scanRunId])
+}
