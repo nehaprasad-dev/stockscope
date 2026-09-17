@@ -10,7 +10,7 @@ import type { ScanPayload } from "./types";
 
 const VAAYA_SHORTLIST = 30;
 
-export async function runScan(): Promise<ScanPayload> {
+export async function runScan(opts?: { userId?: string }): Promise<ScanPayload> {
   try {
     const universe = parseNifty500Csv();
     const symbols = universe.map((s) => s.symbol);
@@ -49,7 +49,7 @@ export async function runScan(): Promise<ScanPayload> {
       .slice(0, VAAYA_SHORTLIST)
       .map((row) => row.symbol);
 
-    const vaaya = await researchShortlist(shortlist);
+    const vaaya = await researchShortlist(shortlist, opts?.userId);
     const fundQuotes = new Map(groww.quotes);
     for (const [symbol, quote] of vaaya.quotes) {
       fundQuotes.set(symbol, mergeQuote(fundQuotes.get(symbol), quote) ?? quote);
