@@ -1,3 +1,4 @@
+import { logVaayaUsage } from "@/db/usage";
 import type { EvidenceSource } from "./types";
 import type { YahooQuote } from "./yahoo";
 
@@ -67,6 +68,7 @@ export async function vaayaRun(opts: {
   params: Record<string, unknown>;
   maxCostCents: number;
   requireOk?: boolean;
+  userId?: string;
 }) {
   const key = process.env.VAAYA_API_KEY;
   if (!key) {
@@ -91,7 +93,17 @@ export async function vaayaRun(opts: {
   const body = (await res.json().catch(() => ({}))) as VaayaResult & {
     message?: string;
     data?: { error?: string };
+    charged_cents?: number;
   };
+  const charged =
+    typeof body.charged_cents === "number" ? body.charged_cents : undefined;
+  void logVaayaUsage({
+    userId: opts.userId,
+    service: opts.service,
+    action: opts.action,
+    ok: res.ok && body.ok !== false,
+    chargedCents: charged,
+  });
   if (res.status === 402 || body.error === "credits_required") {
     throw new VaayaRequiredError(
       "Vaaya credits are required for shortlist research. Add balance, then scan again.",
@@ -218,7 +230,7 @@ export function parseVaayaEvidence(payload: unknown, symbols: string[]) {
   return bySymbol;
 }
 
-export async function researchShortlist(symbols: string[]) {
+export async function researchShortlist(symbols: string[], userId?: string) {
   if (symbols.length === 0) {
     throw new VaayaRequiredError("Vaaya research needs a shortlist.");
   }
@@ -238,6 +250,7 @@ export async function researchShortlist(symbols: string[]) {
       params: { symbol: tagged },
       maxCostCents: 5,
       requireOk: false,
+      userId,
     }),
     vaayaRun({
       service: "vaaya",
@@ -250,6 +263,7 @@ export async function researchShortlist(symbols: string[]) {
         fidelityRequired: false,
       },
       maxCostCents: 10,
+      userId,
     }),
   ]);
 
