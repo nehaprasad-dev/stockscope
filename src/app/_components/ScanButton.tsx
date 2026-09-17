@@ -11,7 +11,7 @@ const PHASES = [
   "Vaaya research on the shortlist...",
 ];
 
-export function ScanButton() {
+export function ScanButton({ scansLeft }: { scansLeft: number }) {
   const [phase, setPhase] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const running = phase != null;
@@ -33,16 +33,12 @@ export function ScanButton() {
       });
       const body = await res.json().catch(() => ({}));
       const scan = body.scan as ScanPayload | undefined;
+      if (res.status === 401) {
+        setError("Continue with Google to scan. Access is free.");
+        return;
+      }
       if (!res.ok || !scan || scan.status === "failed") {
-        const creditsRequired = res.status === 402;
-        const creditsUrl =
-          (typeof body.creditsUrl === "string" && body.creditsUrl) ||
-          scan?.creditsUrl;
-        setError(
-          creditsRequired && creditsUrl
-            ? `${body.error ?? scan?.error ?? "Vaaya credits are required."} ${creditsUrl}`
-            : (body.error ?? scan?.error ?? "Scan could not finish."),
-        );
+        setError(body.error ?? scan?.error ?? "Scan could not finish.");
         return;
       }
       saveScan(scan);
@@ -64,24 +60,10 @@ export function ScanButton() {
       >
         {running ? phase ?? "Scanning…" : "Scan Nifty 500"}
       </button>
-      {error ? (
-        <p className="max-w-sm text-sm text-ink/80">
-          {error.replace("https://vaaya.ai/balance", "").trim()}{" "}
-          {error.includes("vaaya.ai/balance") ? (
-            <a
-              href="https://vaaya.ai/balance"
-              className="text-navy underline underline-offset-4"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Add Vaaya credits
-            </a>
-          ) : null}
-        </p>
-      ) : null}
+      {error ? <p className="max-w-sm text-sm text-ink/80">{error}</p> : null}
       <p className="max-w-sm text-[13px] leading-6 text-ink/45">
-        Full index first. Vaaya research on the shortlist. Ranking stays in this
-        browser — Vercel does not keep a shared results database.
+        Free for now — {scansLeft} scan{scansLeft === 1 ? "" : "s"} left today. Full
+        index first, then Vaaya in the background. Ranking stays in this browser.
       </p>
     </div>
   );
