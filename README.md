@@ -12,8 +12,8 @@ The point: you should not have to research 500 companies by hand. Every scan sta
 
 **Home**
 
-- Last scan time, universe size, how many stocks were analyzed, how many have fundamentals
-- **Scan Nifty 500** — always the full index
+- Last scan time, universe size, how many stocks were analyzed, Vaaya shortlist size
+- **Scan Nifty 500** — always the full index, then Vaaya on ~30 names
 - Top names, then a ranked table: rank, stock, overall, technical, fundamental, signal
 - Filters: All, Top 10, Top 25, Top 50, plus Overall / Technical / Fundamental (display only)
 
@@ -40,8 +40,12 @@ Nifty 500 list
     → Groww company JSON by ISIN (ROE, P/E, debt, growth, margins)
     → Tickertape ratios if Groww has nothing for that name
     → TypeScript scoring (not “ask an LLM for 0–100”)
+    → shortlist ~30
+    → Vaaya (batched quotes + one news/research call)
     → rank + explain
 ```
+
+Vaaya is **required**. A scan does not finish without it. That is two paid calls per scan, not 500. Add credits at https://vaaya.ai/balance.
 
 There are no 1 / 10 / 50 demo scan sizes. Top 10 / 25 / 50 on the home page are filters on the ranked full index.
 
@@ -83,7 +87,7 @@ VAAYA_API_KEY=
 VAAYA_API_URL="https://api.vaaya.ai/api/run"
 ```
 
-SQLite file lands at `prisma/dev.db`. Do not commit `.env`. Vaaya is optional.
+SQLite file lands at `prisma/dev.db`. Do not commit `.env`. **Vaaya is required** — add credits at https://vaaya.ai/balance.
 
 Useful extras:
 
@@ -103,7 +107,7 @@ This app:
 - seeds the Nifty 500 list from the bundled JSON
 - runs the scan in the API request and **keeps the ranked table in your browser**
 
-After deploy, click **Scan Nifty 500** and wait — a full index pass takes about half a minute.
+After deploy, set `VAAYA_API_KEY` on Vercel, add Vaaya credits, then click **Scan Nifty 500**.
 
 ---
 
