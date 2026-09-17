@@ -7,8 +7,8 @@ import { useState } from "react";
 const PHASES = [
   "Fetching Nifty 500 prices...",
   "Building one-year charts...",
-  "Reading fundamentals...",
-  "Scoring and ranking...",
+  "Checking fundamentals...",
+  "Vaaya research on the shortlist...",
 ];
 
 export function ScanButton() {
@@ -34,7 +34,14 @@ export function ScanButton() {
       const body = await res.json().catch(() => ({}));
       const scan = body.scan as ScanPayload | undefined;
       if (!res.ok || !scan || scan.status === "failed") {
-        setError(body.error ?? scan?.error ?? "Scan could not finish.");
+        const creditsUrl =
+          (typeof body.creditsUrl === "string" && body.creditsUrl) ||
+          scan?.creditsUrl;
+        setError(
+          creditsUrl
+            ? `${body.error ?? scan?.error ?? "Vaaya credits are required."} ${creditsUrl}`
+            : (body.error ?? scan?.error ?? "Scan could not finish."),
+        );
         return;
       }
       saveScan(scan);
@@ -56,11 +63,25 @@ export function ScanButton() {
       >
         {running ? phase ?? "Scanning…" : "Scan Nifty 500"}
       </button>
-      {error ? <p className="text-sm text-rust">{error}</p> : null}
+      {error ? (
+        <p className="text-sm text-rust">
+          {error.replace("https://vaaya.ai/balance", "").trim()}{" "}
+          {error.includes("vaaya.ai/balance") ? (
+            <a
+              href="https://vaaya.ai/balance"
+              className="underline underline-offset-4"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Add Vaaya credits
+            </a>
+          ) : null}
+        </p>
+      ) : null}
       <p className="max-w-md text-xs leading-5 text-ink/55">
-        Always scans the full index: official NSE prices, one-year charts for every
-        name, then reported fundamentals where they exist. Missing fields stay blank.
-        Results stay in this browser.
+        Always scans the full index, then Vaaya research on a shortlist of names that
+        already stand out. Scores stay deterministic. Missing fields stay blank. Results
+        stay in this browser.
       </p>
     </div>
   );
