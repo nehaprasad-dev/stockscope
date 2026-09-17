@@ -2,6 +2,7 @@ import type { EvidenceSource } from "./types";
 import type { YahooQuote } from "./yahoo";
 
 export const VAAYA_CREDITS_URL = "https://vaaya.ai/balance";
+const DEFAULT_VAAYA_RUN_URL = "https://vaaya.ai/api/run";
 
 export class VaayaRequiredError extends Error {
   creditsUrl: string;
@@ -11,6 +12,27 @@ export class VaayaRequiredError extends Error {
     this.name = "VaayaRequiredError";
     this.creditsUrl = creditsUrl;
   }
+}
+
+export class VaayaApiError extends Error {
+  status: number;
+
+  constructor(message: string, status = 502) {
+    super(message);
+    this.name = "VaayaApiError";
+    this.status = status;
+  }
+}
+
+export function vaayaRunBase() {
+  const raw = (process.env.VAAYA_API_URL ?? DEFAULT_VAAYA_RUN_URL)
+    .trim()
+    .replace(/\/+$/, "");
+  // api.vaaya.ai is not the run host — it 404s with "requested path is invalid".
+  if (!raw || raw.includes("://api.vaaya.ai")) {
+    return DEFAULT_VAAYA_RUN_URL;
+  }
+  return raw;
 }
 
 type VaayaResult = {
@@ -52,7 +74,7 @@ export async function vaayaRun(opts: {
       "Vaaya is required for a scan. Set VAAYA_API_KEY, then add credits at https://vaaya.ai/balance",
     );
   }
-  const base = process.env.VAAYA_API_URL ?? "https://api.vaaya.ai/api/run";
+  const base = vaayaRunBase();
   const res = await fetch(`${base}/${opts.service}/${opts.action}`, {
     method: "POST",
     headers: {
@@ -60,14 +82,15 @@ export async function vaayaRun(opts: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      params: opts.params,
+      ...opts.params,
       max_cost_cents: opts.maxCostCents,
     }),
     cache: "no-store",
-    signal: AbortSignal.timeout(25000),
+    signal: AbortSignal.timeout(40000),
   });
   const body = (await res.json().catch(() => ({}))) as VaayaResult & {
     message?: string;
+    data?: { error?: string };
   };
   if (res.status === 402 || body.error === "credits_required") {
     throw new VaayaRequiredError(
@@ -76,11 +99,14 @@ export async function vaayaRun(opts: {
     );
   }
   if (!res.ok) {
+    const detail =
+      body.error ?? body.message ?? body.data?.error ?? "Request failed";
     if (opts.requireOk === false) {
       return { ok: false, error: `Vaaya ${res.status}` } satisfies VaayaResult;
     }
-    throw new VaayaRequiredError(
-      `Vaaya research failed (${res.status}). ${body.error ?? body.message ?? "Retry after checking https://vaaya.ai/balance"}`,
+    throw new VaayaApiError(
+      `Vaaya research failed (${res.status}). ${detail}`,
+      502,
     );
   }
   return body;
