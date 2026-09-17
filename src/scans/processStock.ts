@@ -1,5 +1,3 @@
-import { prisma } from "@/db/prisma";
-import { explainScore } from "@/explanations/explainScore";
 import {
   enrichShortlistCharts,
   fundamentalFromQuote,
@@ -10,23 +8,21 @@ import {
 import type { FundamentalSignals, TechnicalSignals } from "@/research/types";
 import type { YahooQuote } from "@/research/yahoo";
 import { researchShortlist } from "@/research/vaaya";
+import { explainScore } from "@/explanations/explainScore";
 import { fundamentalScore } from "@/scoring/fundamentalScore";
 import { dataConfidence, overallScore, riskScore } from "@/scoring/overallScore";
+import { signalLabel } from "@/scoring/math";
 import { technicalScore } from "@/scoring/technicalScore";
-import { Prisma } from "@prisma/client";
+import type { StockScanDetail } from "./types";
 
-function json(value: unknown) {
-  return JSON.stringify(value);
-}
-
-export function snapshotRow(opts: {
-  stockId: string;
+export function scoreParts(opts: {
+  symbol: string;
   name: string;
-  scanRunId: string;
+  sector: string | null;
   tech: TechnicalSignals;
   fund: FundamentalSignals;
   research?: unknown;
-}): Prisma.StockSnapshotCreateManyInput {
+}): StockScanDetail {
   const techResult = technicalScore(opts.tech);
   const fundResult = fundamentalScore(opts.fund);
   const risk = riskScore({
@@ -60,49 +56,32 @@ export function snapshotRow(opts: {
     techParts: techResult.components,
     fundParts: fundResult.components,
   });
+  const sources = [...opts.tech.sources, ...opts.fund.sources].filter(
+    (s, i, arr) => arr.findIndex((x) => x.url === s.url) === i,
+  );
+
   return {
-    stockId: opts.stockId,
-    scanRunId: opts.scanRunId,
-    price: opts.tech.price ?? null,
-    technicalData: json({
-      ...opts.tech,
-      components: techResult.components,
-      labels: explanation.technicalLabels,
-    }),
-    fundamentalData: json({
-      ...opts.fund,
-      components: fundResult.components,
-      labels: explanation.fundamentalLabels,
-    }),
-    researchData: json({
-      narrative: explanation.narrative,
-      standout: explanation.standout,
-      watch: explanation.watch,
-      vaaya: opts.research ?? null,
-    }),
+    symbol: opts.symbol,
+    name: opts.name,
+    sector: opts.sector,
+    rank: 0,
+    overallScore: overall ?? null,
     technicalScore: techResult.score ?? null,
     fundamentalScore: fundResult.score ?? null,
     riskScore: risk ?? null,
-    overallScore: overall ?? null,
     confidence,
+    signal: signalLabel(overall),
     reason: explanation.narrative,
-    riskSummary: explanation.watch.join(" · "),
-    scoredAt: overall != null ? new Date() : null,
+    price: opts.tech.price ?? null,
+    scoredAt: new Date().toISOString(),
+    standout: explanation.standout,
+    watch: explanation.watch,
+    technicalLabels: explanation.technicalLabels,
+    fundamentalLabels: explanation.fundamentalLabels,
+    sources,
+    momentum: techResult.components.momentum,
+    financial: fundResult.components.profitability,
   };
-}
-
-export async function processStock(opts: {
-  stockId: string;
-  symbol: string;
-  name: string;
-  scanRunId: string;
-  tech: TechnicalSignals;
-  fund: FundamentalSignals;
-  research?: unknown;
-}) {
-  return prisma.stockSnapshot.create({
-    data: snapshotRow(opts),
-  });
 }
 
 export function cheapScreenScore(tech: TechnicalSignals, fund: FundamentalSignals) {
@@ -114,12 +93,11 @@ export function cheapScreenScore(tech: TechnicalSignals, fund: FundamentalSignal
   return 0.45 * t + 0.55 * f;
 }
 
-export async function enrichAndScore(opts: {
-  stocks: Array<{ id: string; symbol: string; name: string }>;
+export async function scoreUniverse(opts: {
+  stocks: Array<{ symbol: string; name: string; sector: string | null }>;
   quotes: Map<string, YahooQuote>;
-  scanRunId: string;
   shortlist: string[];
-}) {
+}): Promise<StockScanDetail[]> {
   const chartNames = opts.shortlist.slice(0, 10);
   const extras = await enrichShortlistCharts(chartNames);
   const pe = medianPE(opts.quotes);
@@ -130,23 +108,18 @@ export async function enrichAndScore(opts: {
     research = { ok: false, error: "Vaaya research skipped" };
   }
 
-  const rows = opts.stocks.map((stock) => {
+  return opts.stocks.map((stock) => {
     const extra = extras.get(stock.symbol);
     const quote = mergeQuote(opts.quotes.get(stock.symbol), extra?.quotePatch);
     const tech = technicalFromQuote(stock.symbol, quote, extra);
     const fund = fundamentalFromQuote(stock.symbol, quote, pe);
-    return snapshotRow({
-      stockId: stock.id,
+    return scoreParts({
+      symbol: stock.symbol,
       name: stock.name,
-      scanRunId: opts.scanRunId,
+      sector: stock.sector,
       tech,
       fund,
       research: opts.shortlist.includes(stock.symbol) ? research : null,
     });
   });
-
-  const chunk = 80;
-  for (let i = 0; i < rows.length; i += chunk) {
-    await prisma.stockSnapshot.createMany({ data: rows.slice(i, i + chunk) });
-  }
 }

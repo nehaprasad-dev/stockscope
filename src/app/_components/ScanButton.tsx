@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { saveScan } from "@/scans/clientStore";
+import type { ScanPayload } from "@/scans/types";
 import { useState } from "react";
 
 const LIMITS = [1, 10, 50, 500] as const;
@@ -11,12 +12,11 @@ const PHASES = [
   "Ranking stocks...",
 ];
 
-export function ScanButton({ busy }: { busy: boolean }) {
-  const router = useRouter();
+export function ScanButton() {
   const [limit, setLimit] = useState<(typeof LIMITS)[number]>(10);
   const [phase, setPhase] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const running = busy || phase != null;
+  const running = phase != null;
 
   async function start() {
     setError(null);
@@ -37,15 +37,17 @@ export function ScanButton({ busy }: { busy: boolean }) {
         }),
       });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok || body.scan?.status === "failed") {
-        setError(body.error ?? body.scan?.error ?? "Scan could not finish.");
+      const scan = body.scan as ScanPayload | undefined;
+      if (!res.ok || !scan || scan.status === "failed") {
+        setError(body.error ?? scan?.error ?? "Scan could not finish.");
+        return;
       }
-    } catch {
-      setError("Scan could not start.");
+      saveScan(scan);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Scan could not start.");
     } finally {
       clearInterval(timer);
       setPhase(null);
-      router.refresh();
     }
   }
 
@@ -77,8 +79,8 @@ export function ScanButton({ busy }: { busy: boolean }) {
       </button>
       {error ? <p className="text-sm text-rust">{error}</p> : null}
       <p className="max-w-md text-xs leading-5 text-ink/55">
-        Starts with one NSE price file for the whole list, then deep-scores up to 10
-        names. 1, 10, 50, and the full 500 all run here.
+        Results stay in this browser after the scan returns. 1, 10, 50, and 500 all
+        run from one NSE price file plus a short chart pass.
       </p>
     </div>
   );

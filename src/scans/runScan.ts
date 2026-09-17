@@ -1,43 +1,22 @@
-import { createScanRun, runningScan, updateScanRun } from "@/db/scans";
-import { ensureDb } from "@/db/ensure";
-import { prisma } from "@/db/prisma";
 import {
   collectQuotes,
   fundamentalFromQuote,
   technicalFromQuote,
 } from "@/research/collect";
 import { STARTER_SYMBOLS } from "@/stocks/starter";
-import { cheapScreenScore, enrichAndScore } from "./processStock";
+import { parseNifty500Csv } from "@/stocks/parseUniverse";
+import { rankStocks } from "@/scoring/rankStocks";
+import { cheapScreenScore, scoreUniverse } from "./processStock";
+import type { ScanPayload } from "./types";
 
 export type ScanOptions = {
   limit?: number;
   shortlistSize?: number;
 };
 
-async function markStaleScans() {
-  const stale = await prisma.scanRun.findMany({
-    where: { status: { in: ["queued", "running"] } },
-  });
-  const cutoff = Date.now() - 45 * 1000;
-  for (const scan of stale) {
-    if (scan.startedAt.getTime() < cutoff) {
-      await updateScanRun(scan.id, {
-        status: "failed",
-        phase: "Failed",
-        error: "Scan timed out",
-        completedAt: new Date(),
-      });
-    }
-  }
-}
-
-async function pickUniverse(limit: number) {
-  const active = await prisma.stock.findMany({
-    where: { isActive: true },
-    orderBy: { symbol: "asc" },
-  });
+function pickUniverse(limit: number) {
+  const active = parseNifty500Csv();
   if (active.length <= limit) return active;
-
   const bySymbol = new Map(active.map((s) => [s.symbol, s]));
   const picked = [];
   const used = new Set<string>();
@@ -57,34 +36,16 @@ async function pickUniverse(limit: number) {
   return picked;
 }
 
-export async function runScan(options: ScanOptions = {}) {
-  await ensureDb();
-  await markStaleScans();
-  const existing = await runningScan();
-  if (existing) {
-    await updateScanRun(existing.id, {
-      status: "failed",
-      phase: "Failed",
-      error: "Replaced by a new scan",
-      completedAt: new Date(),
-    });
-  }
-
-  const cap = 500;
-  const limit = Math.min(Math.max(options.limit ?? 10, 1), cap);
+export async function runScan(options: ScanOptions = {}): Promise<ScanPayload> {
+  const limit = Math.min(Math.max(options.limit ?? 10, 1), 500);
   const shortlistSize = Math.min(
     Math.max(options.shortlistSize ?? Math.min(10, limit), 1),
     limit <= 10 ? limit : 10,
   );
 
-  const scan = await createScanRun();
   try {
-    const universe = await pickUniverse(limit);
-
-    await updateScanRun(scan.id, { phase: "Fetching market data..." });
+    const universe = pickUniverse(limit);
     const quotes = await collectQuotes(universe.map((s) => s.symbol));
-
-    await updateScanRun(scan.id, { phase: "Analyzing technical signals..." });
     const cheap = universe
       .map((stock) => {
         const quote = quotes.get(stock.symbol);
@@ -99,32 +60,41 @@ export async function runScan(options: ScanOptions = {}) {
       .slice(0, Math.min(shortlistSize, universe.length))
       .map((row) => row.stock.symbol);
 
-    await updateScanRun(scan.id, {
-      phase: "Checking fundamentals...",
-      stocksShortlisted: shortlist.length,
-    });
-
-    await updateScanRun(scan.id, { phase: "Ranking stocks..." });
-    await enrichAndScore({
-      stocks: universe,
+    const detailsList = await scoreUniverse({
+      stocks: universe.map((s) => ({
+        symbol: s.symbol,
+        name: s.name,
+        sector: s.sector,
+      })),
       quotes,
-      scanRunId: scan.id,
       shortlist,
     });
+    const ranked = rankStocks(detailsList);
+    const details = Object.fromEntries(ranked.map((row) => [row.symbol, {
+      ...detailsList.find((d) => d.symbol === row.symbol)!,
+      rank: row.rank,
+      signal: row.signal,
+    }]));
 
-    return updateScanRun(scan.id, {
+    return {
       status: "completed",
       phase: `${universe.length} stocks analyzed`,
       stocksAnalyzed: universe.length,
       stocksShortlisted: shortlist.length,
-      completedAt: new Date(),
-    });
+      completedAt: new Date().toISOString(),
+      ranked,
+      details,
+    };
   } catch (error) {
-    return updateScanRun(scan.id, {
+    return {
       status: "failed",
       phase: "Failed",
+      stocksAnalyzed: 0,
+      stocksShortlisted: 0,
+      completedAt: new Date().toISOString(),
       error: error instanceof Error ? error.message : "Scan failed",
-      completedAt: new Date(),
-    });
+      ranked: [],
+      details: {},
+    };
   }
 }

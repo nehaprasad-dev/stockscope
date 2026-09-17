@@ -1,6 +1,4 @@
 import { z } from "zod";
-import { ensureDb } from "@/db/ensure";
-import { latestScan, runningScan } from "@/db/scans";
 import { runScan } from "@/scans/runScan";
 
 export const runtime = "nodejs";
@@ -12,27 +10,22 @@ const Body = z.object({
 });
 
 export async function GET() {
-  try {
-    await ensureDb();
-    const [running, latest] = await Promise.all([runningScan(), latestScan()]);
-    return Response.json({ running, latest });
-  } catch (error) {
-    return Response.json(
-      { error: error instanceof Error ? error.message : "Could not read scan status" },
-      { status: 500 },
-    );
-  }
+  return Response.json({
+    message: "POST to run a scan. Results are returned in the response body.",
+  });
 }
 
 export async function POST(request: Request) {
   try {
-    await ensureDb();
     const json = await request.json().catch(() => ({}));
     const parsed = Body.safeParse(json);
     if (!parsed.success) {
       return Response.json({ error: "Invalid scan request" }, { status: 400 });
     }
     const scan = await runScan(parsed.data);
+    if (scan.status === "failed") {
+      return Response.json({ error: scan.error ?? "Scan failed", scan }, { status: 500 });
+    }
     return Response.json({ scan });
   } catch (error) {
     return Response.json(

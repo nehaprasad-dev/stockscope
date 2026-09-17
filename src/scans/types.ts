@@ -1,0 +1,24 @@
+import type { EvidenceSource, RankedStock } from "@/research/types";
+
+export const SCAN_STORAGE_KEY = "nifty500-last-scan";
+
+export type StockScanDetail = RankedStock & {
+  standout: string[];
+  watch: string[];
+  technicalLabels: Record<string, string>;
+  fundamentalLabels: Record<string, string>;
+  sources: EvidenceSource[];
+  momentum?: number;
+  financial?: number;
+};
+
+export type ScanPayload = {
+  status: "completed" | "failed";
+  phase: string;
+  stocksAnalyzed: number;
+  stocksShortlisted: number;
+  completedAt: string | null;
+  error?: string;
+  ranked: RankedStock[];
+  details: Record<string, StockScanDetail>;
+};

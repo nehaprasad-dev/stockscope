@@ -107,12 +107,11 @@ The screenshot error (`Universe is empty` + `POST /api/scan 500`) happens becaus
 This app now:
 
 - creates a sqlite file under `/tmp` on Vercel
-- seeds the Nifty 500 list on first request
-- scans **1, 10, 50, or 500** — bulk prices from one NSE bhavcopy, then charts only for a shortlist of 10
+- seeds the Nifty 500 list from the bundled JSON (no sqlite needed to show the universe)
+- runs the scan in the API request and **keeps the ranked table in your browser**
+- that is required on Vercel: `/tmp` sqlite is not shared between page load and scan, so DB-only results always looked empty
 
-Redeploy after pulling these changes. First page load may take a few seconds while it seeds.
-
-Scan results in `/tmp` go away when the serverless instance is recycled. For a durable production database you’d switch to Postgres later.
+Redeploy after pulling these changes. After deploy, click **Scan Nifty 500** and wait — scores should appear on the same page without a refresh wiping them.
 
 ---
 
