@@ -34,11 +34,12 @@ export function ScanButton() {
       const body = await res.json().catch(() => ({}));
       const scan = body.scan as ScanPayload | undefined;
       if (!res.ok || !scan || scan.status === "failed") {
+        const creditsRequired = res.status === 402;
         const creditsUrl =
           (typeof body.creditsUrl === "string" && body.creditsUrl) ||
           scan?.creditsUrl;
         setError(
-          creditsUrl
+          creditsRequired && creditsUrl
             ? `${body.error ?? scan?.error ?? "Vaaya credits are required."} ${creditsUrl}`
             : (body.error ?? scan?.error ?? "Scan could not finish."),
         );
