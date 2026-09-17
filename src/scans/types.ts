@@ -10,6 +10,7 @@ export type StockScanDetail = RankedStock & {
   sources: EvidenceSource[];
   momentum?: number;
   financial?: number;
+  researchNotes?: string[];
 };
 
 export type ScanPayload = {
@@ -19,6 +20,7 @@ export type ScanPayload = {
   stocksShortlisted: number;
   completedAt: string | null;
   error?: string;
+  creditsUrl?: string;
   ranked: RankedStock[];
   details: Record<string, StockScanDetail>;
 };
