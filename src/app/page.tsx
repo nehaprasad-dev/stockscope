@@ -1,4 +1,5 @@
 import { HomeClient } from "./_components/HomeClient";
+import { ScanArea } from "./_components/ScanArea";
 import { parseNifty500Csv } from "@/stocks/parseUniverse";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,8 @@ export default async function Home({
       universeCount={parseNifty500Csv().length}
       view={view}
       sort={sort}
-    />
+    >
+      <ScanArea />
+    </HomeClient>
   );
 }
