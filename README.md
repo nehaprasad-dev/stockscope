@@ -108,7 +108,7 @@ This app now:
 
 - creates a sqlite file under `/tmp` on Vercel
 - seeds the Nifty 500 list on first request
-- lets you scan **1 or 10** stocks (a full 500 scan times out on the hobby plan)
+- scans **1, 10, 50, or 500** — bulk prices from one NSE bhavcopy, then charts only for a shortlist of 10
 
 Redeploy after pulling these changes. First page load may take a few seconds while it seeds.
 

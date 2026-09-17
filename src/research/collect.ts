@@ -26,7 +26,7 @@ export async function collectQuotes(symbols: string[]) {
   const bhav = await fetchBhavQuotes(symbols);
   const quotes = new Map(bhav.quotes);
   const missing = symbols.filter((symbol) => !quotes.has(symbol));
-  if (missing.length > 0 && missing.length <= 40) {
+  if (missing.length > 0 && missing.length <= 12 && symbols.length <= 25) {
     const yahoo = await fetchQuotes(missing);
     for (const [symbol, quote] of yahoo) {
       quotes.set(symbol, mergeQuote(quotes.get(symbol), quote) ?? quote);
@@ -109,12 +109,11 @@ export function fundamentalFromQuote(
 
 export async function enrichShortlistCharts(symbols: string[]) {
   const charts = new Map<string, ChartPoint[]>();
-  const batch = process.env.VERCEL ? 5 : 1;
+  const batch = 8;
   for (let i = 0; i < symbols.length; i += batch) {
     const slice = symbols.slice(i, i + batch);
     const results = await Promise.all(slice.map((symbol) => fetchChart(symbol)));
     slice.forEach((symbol, j) => charts.set(symbol, results[j] ?? []));
-    if (!process.env.VERCEL) await new Promise((r) => setTimeout(r, 150));
   }
   const returns = [...charts.entries()]
     .map(([symbol, pts]) => ({ symbol, ret: threeMonthReturn(pts) }))

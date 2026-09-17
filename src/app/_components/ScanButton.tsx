@@ -33,7 +33,7 @@ export function ScanButton({ busy }: { busy: boolean }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           limit,
-          shortlistSize: limit <= 50 ? limit : 50,
+          shortlistSize: Math.min(10, limit),
         }),
       });
       const body = await res.json().catch(() => ({}));
@@ -77,9 +77,8 @@ export function ScanButton({ busy }: { busy: boolean }) {
       </button>
       {error ? <p className="text-sm text-rust">{error}</p> : null}
       <p className="max-w-md text-xs leading-5 text-ink/55">
-        Starts with a cheap bulk screen, then deep-scores a shortlist. Default is 10
-        stocks. On Vercel use 1 or 10 — a full 500 scan needs a longer timeout, so run
-        that locally.
+        Starts with one NSE price file for the whole list, then deep-scores up to 10
+        names. 1, 10, 50, and the full 500 all run here.
       </p>
     </div>
   );

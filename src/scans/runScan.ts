@@ -18,7 +18,7 @@ async function markStaleScans() {
   const stale = await prisma.scanRun.findMany({
     where: { status: { in: ["queued", "running"] } },
   });
-  const cutoff = Date.now() - 15 * 60 * 1000;
+  const cutoff = Date.now() - 45 * 1000;
   for (const scan of stale) {
     if (scan.startedAt.getTime() < cutoff) {
       await updateScanRun(scan.id, {
@@ -61,11 +61,21 @@ export async function runScan(options: ScanOptions = {}) {
   await ensureDb();
   await markStaleScans();
   const existing = await runningScan();
-  if (existing) return existing;
+  if (existing) {
+    await updateScanRun(existing.id, {
+      status: "failed",
+      phase: "Failed",
+      error: "Replaced by a new scan",
+      completedAt: new Date(),
+    });
+  }
 
-  const cap = process.env.VERCEL ? 10 : 500;
+  const cap = 500;
   const limit = Math.min(Math.max(options.limit ?? 10, 1), cap);
-  const shortlistSize = Math.min(Math.max(options.shortlistSize ?? 10, 1), 50);
+  const shortlistSize = Math.min(
+    Math.max(options.shortlistSize ?? Math.min(10, limit), 1),
+    limit <= 10 ? limit : 10,
+  );
 
   const scan = await createScanRun();
   try {

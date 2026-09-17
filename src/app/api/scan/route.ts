@@ -32,15 +32,6 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return Response.json({ error: "Invalid scan request" }, { status: 400 });
     }
-    if (process.env.VERCEL && (parsed.data.limit ?? 10) > 10) {
-      return Response.json(
-        {
-          error:
-            "Vercel serverless functions time out on a full 500 scan. Use 1 or 10 stocks here, or run 50/500 locally.",
-        },
-        { status: 400 },
-      );
-    }
     const scan = await runScan(parsed.data);
     return Response.json({ scan });
   } catch (error) {
