@@ -80,7 +80,8 @@ export function ScanButton() {
         </p>
       ) : null}
       <p className="max-w-sm text-[13px] leading-6 text-ink/45">
-        Full index first. Vaaya research on the shortlist. Missing fields stay blank.
+        Full index first. Vaaya research on the shortlist. Ranking stays in this
+        browser — Vercel does not keep a shared results database.
       </p>
     </div>
   );
