@@ -84,7 +84,7 @@ Open [http://localhost:3000](http://localhost:3000).
 ```
 DATABASE_URL="file:./dev.db"
 VAAYA_API_KEY=
-VAAYA_API_URL="https://api.vaaya.ai/api/run"
+VAAYA_API_URL="https://vaaya.ai/api/run"
 ```
 
 SQLite file lands at `prisma/dev.db`. Do not commit `.env`. **Vaaya is required** — add credits at https://vaaya.ai/balance.
