@@ -78,7 +78,7 @@ export function HomeClient({
           <div className="mt-1">{scan?.stocksAnalyzed ?? 0}</div>
         </div>
         <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-ink/40">With fundamentals</div>
+          <div className="text-xs uppercase tracking-[0.18em] text-ink/40">Vaaya shortlist</div>
           <div className="mt-1">{scan?.stocksShortlisted ?? 0}</div>
         </div>
       </section>
