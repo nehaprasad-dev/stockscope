@@ -75,7 +75,7 @@ export function HomeClient({
               <span className="h-2 w-2 rounded-full bg-navy/15" />
               <span className="h-2 w-2 rounded-full bg-navy/10" />
             </div>
-            <p className="text-xs text-ink/45">Today’s ranking</p>
+            <p className="text-xs text-ink/45">This browser</p>
           </div>
           <div className="grid grid-cols-3 gap-px border-b border-line bg-line text-center">
             <div className="bg-white px-4 py-4">
@@ -120,7 +120,9 @@ export function HomeClient({
             )}
           </div>
           <p className="border-t border-line px-5 py-3 text-[11px] text-ink/40">
-            Last scan {formatStamp(scan?.completedAt) ?? "not yet"}
+            {scan?.completedAt
+              ? `Last scan on this browser · ${formatStamp(scan.completedAt)}`
+              : "No scan on this browser yet"}
           </p>
         </div>
       </section>
