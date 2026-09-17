@@ -26,6 +26,11 @@ export default function MethodologyPage() {
           and profit growth, margins) where the source actually has them.
         </li>
         <li>Score with TypeScript. Missing fields are skipped, never invented.</li>
+        <li>
+          Send a shortlist of about 30 names to Vaaya: one batched quote read, plus one
+          web/news research call with cited URLs. That is required. The model explains
+          and cites; it does not invent the 0–100 score.
+        </li>
         <li>Rank by overall score × confidence × freshness.</li>
       </ol>
       <p>
@@ -50,9 +55,11 @@ export default function MethodologyPage() {
       <p>
         Prices come from NSE bhavcopy. Charts come from Yahoo Finance. Fundamental
         ratios and statements come from Groww’s public company JSON, keyed by ISIN.
-        If a name is missing there, Tickertape ratios are used when present. Screener,
+        If a name is missing there, Tickertape ratios are used when present. Vaaya then
+        runs on the shortlist for batched quotes and cited news/research. Screener,
         Trendlyne, NSE quote pages, and Indian Stock Picker are linked for further
-        reading. Those sites are not scraped for scoring.
+        reading. Those sites are not scraped for scoring. A scan does not finish if
+        Vaaya credits are missing.
       </p>
     </article>
   );
