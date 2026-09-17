@@ -7,6 +7,41 @@ datasource db {
   url      = "file:./dev.db"
 }
 
+model User {
+  id        String       @id @default(cuid())
+  email     String       @unique
+  name      String?
+  image     String?
+  clerkUserId  String   @unique
+  /// End users are not billed. Vaaya has no public account-create API, so scans
+  /// run on the operator key (x402 / prepaid stays on the platform wallet).
+  freeAccess   Boolean  @default(true)
+  vaayaBilling String  @default("operator")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model UserScan {
+  id        String   @id @default(cuid())
+  userId    String
+  status    String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model VaayaUsage {
+  id           String   @id @default(cuid())
+  userId       String?
+  service      String
+  action       String
+  ok           Boolean
+  chargedCents Int?
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
 model Stock {
   id         String          @id @default(cuid())
   symbol     String          @unique
