@@ -115,6 +115,19 @@ export function StockDetail({
             </section>
           ) : null}
 
+          {detail.researchNotes?.length ? (
+            <section>
+              <h2 className="text-xs uppercase tracking-[0.22em] text-ink/45">
+                Vaaya research
+              </h2>
+              <ul className="mt-4 grid gap-2 text-lg">
+                {detail.researchNotes.map((item) => (
+                  <li key={item}>• {item}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
           <section className="grid gap-10 md:grid-cols-2">
             <div>
               <h2 className="text-xs uppercase tracking-[0.22em] text-ink/45">
