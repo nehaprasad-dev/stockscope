@@ -14,7 +14,7 @@ export async function POST() {
   try {
     const scan = await runScan();
     if (scan.status === "failed") {
-      const status = scan.creditsUrl ? 402 : 500;
+      const status = scan.creditsUrl ? 402 : 502;
       return Response.json(
         { error: scan.error ?? "Scan failed", creditsUrl: scan.creditsUrl, scan },
         { status },
