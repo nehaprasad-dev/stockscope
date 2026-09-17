@@ -4,16 +4,14 @@ import { saveScan } from "@/scans/clientStore";
 import type { ScanPayload } from "@/scans/types";
 import { useState } from "react";
 
-const LIMITS = [1, 10, 50, 500] as const;
 const PHASES = [
-  "Fetching market data...",
-  "Analyzing technical signals...",
-  "Checking fundamentals...",
-  "Ranking stocks...",
+  "Fetching Nifty 500 prices...",
+  "Building one-year charts...",
+  "Reading fundamentals...",
+  "Scoring and ranking...",
 ];
 
 export function ScanButton() {
-  const [limit, setLimit] = useState<(typeof LIMITS)[number]>(10);
   const [phase, setPhase] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const running = phase != null;
@@ -25,16 +23,13 @@ export function ScanButton() {
     const timer = setInterval(() => {
       i = Math.min(i + 1, PHASES.length - 1);
       setPhase(PHASES[i]);
-    }, 2500);
+    }, 4000);
 
     try {
       const res = await fetch("/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          limit,
-          shortlistSize: Math.min(10, limit),
-        }),
+        body: JSON.stringify({}),
       });
       const body = await res.json().catch(() => ({}));
       const scan = body.scan as ScanPayload | undefined;
@@ -53,22 +48,6 @@ export function ScanButton() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        {LIMITS.map((n) => (
-          <button
-            key={n}
-            type="button"
-            onClick={() => setLimit(n)}
-            className={`rounded-full border px-3 py-1 text-xs tracking-wide ${
-              limit === n
-                ? "border-ink bg-ink text-paper"
-                : "border-line bg-transparent text-ink/70"
-            }`}
-          >
-            {n === 500 ? "Full Nifty 500" : n === 1 ? "1 stock" : `${n} stocks`}
-          </button>
-        ))}
-      </div>
       <button
         type="button"
         onClick={start}
@@ -79,8 +58,9 @@ export function ScanButton() {
       </button>
       {error ? <p className="text-sm text-rust">{error}</p> : null}
       <p className="max-w-md text-xs leading-5 text-ink/55">
-        Results stay in this browser after the scan returns. 1, 10, 50, and 500 all
-        run from one NSE price file plus a short chart pass.
+        Always scans the full index: official NSE prices, one-year charts for every
+        name, then reported fundamentals where they exist. Missing fields stay blank.
+        Results stay in this browser.
       </p>
     </div>
   );

@@ -1,10 +1,8 @@
-import type { FundamentalSignals, TechnicalSignals } from "./types";
+import type { EvidenceSource, FundamentalSignals, TechnicalSignals } from "./types";
 import { nseBhavSource, fetchBhavQuotes } from "./nseBhavcopy";
 import { sourceLinks, yahooQuoteUrl } from "./sources";
 import {
   annualizedVolatility,
-  fetchChart,
-  fetchQuotes,
   quoteFromChart,
   threeMonthReturn,
   type ChartPoint,
@@ -13,7 +11,14 @@ import {
 
 type Quote = YahooQuote;
 
-function evidence(symbol: string, claim: string) {
+export type ChartExtras = {
+  relativeReturn3m?: number;
+  universeMedianReturn3m?: number;
+  volatility?: number;
+  quotePatch?: YahooQuote;
+};
+
+function yahooEvidence(symbol: string, claim: string): EvidenceSource {
   return {
     source: "Yahoo Finance",
     url: yahooQuoteUrl(symbol),
@@ -24,15 +29,7 @@ function evidence(symbol: string, claim: string) {
 
 export async function collectQuotes(symbols: string[]) {
   const bhav = await fetchBhavQuotes(symbols);
-  const quotes = new Map(bhav.quotes);
-  const missing = symbols.filter((symbol) => !quotes.has(symbol));
-  if (missing.length > 0 && missing.length <= 12 && symbols.length <= 25) {
-    const yahoo = await fetchQuotes(missing);
-    for (const [symbol, quote] of yahoo) {
-      quotes.set(symbol, mergeQuote(quotes.get(symbol), quote) ?? quote);
-    }
-  }
-  return quotes;
+  return new Map(bhav.quotes);
 }
 
 export function mergeQuote(quote?: Quote, patch?: Quote): Quote | undefined {
@@ -46,24 +43,32 @@ export function mergeQuote(quote?: Quote, patch?: Quote): Quote | undefined {
   return out;
 }
 
+function hasFundFields(quote?: Quote) {
+  return Boolean(
+    quote &&
+      (quote.revenueGrowth != null ||
+        quote.earningsGrowth != null ||
+        quote.returnOnEquity != null ||
+        quote.profitMargins != null ||
+        quote.debtToEquity != null ||
+        quote.trailingPE != null ||
+        quote.priceToBook != null),
+  );
+}
+
 export function technicalFromQuote(
   symbol: string,
   quote: Quote | undefined,
-  extras?: {
-    relativeReturn3m?: number;
-    universeMedianReturn3m?: number;
-    volatility?: number;
-  },
+  extras?: ChartExtras,
 ): TechnicalSignals {
-  const sources = [
-    ...(quote
-      ? [
-          evidence(symbol, "Price, moving averages, volume and range"),
-          nseBhavSource("https://nsearchives.nseindia.com/"),
-        ]
-      : []),
-    ...sourceLinks(symbol),
-  ];
+  const sources: EvidenceSource[] = [];
+  if (quote?.regularMarketPrice != null) {
+    sources.push(nseBhavSource("https://nsearchives.nseindia.com/"));
+  }
+  if (quote?.fiftyDayAverage != null || extras?.relativeReturn3m != null) {
+    sources.push(yahooEvidence(symbol, "One-year daily chart for trend, range and volatility"));
+  }
+  sources.push(...sourceLinks(symbol));
   return {
     price: quote?.regularMarketPrice,
     ma50: quote?.fiftyDayAverage,
@@ -84,13 +89,17 @@ export function fundamentalFromQuote(
   symbol: string,
   quote: Quote | undefined,
   universeMedianPE?: number,
+  extraSources: EvidenceSource[] = [],
 ): FundamentalSignals {
-  const sources = [
-    ...(quote
-      ? [evidence(symbol, "Growth, profitability, leverage and valuation fields")]
-      : []),
+  const sources: EvidenceSource[] = [
+    ...extraSources,
     ...sourceLinks(symbol),
   ];
+  if (hasFundFields(quote) && extraSources.length === 0) {
+    sources.unshift(
+      yahooEvidence(symbol, "Growth, profitability, leverage and valuation fields"),
+    );
+  }
   return {
     revenueGrowth: quote?.revenueGrowth,
     earningsGrowth: quote?.earningsGrowth ?? quote?.earningsQuarterlyGrowth,
@@ -107,14 +116,7 @@ export function fundamentalFromQuote(
   };
 }
 
-export async function enrichShortlistCharts(symbols: string[]) {
-  const charts = new Map<string, ChartPoint[]>();
-  const batch = 8;
-  for (let i = 0; i < symbols.length; i += batch) {
-    const slice = symbols.slice(i, i + batch);
-    const results = await Promise.all(slice.map((symbol) => fetchChart(symbol)));
-    slice.forEach((symbol, j) => charts.set(symbol, results[j] ?? []));
-  }
+export function extrasFromCharts(charts: Map<string, ChartPoint[]>) {
   const returns = [...charts.entries()]
     .map(([symbol, pts]) => ({ symbol, ret: threeMonthReturn(pts) }))
     .filter((r): r is { symbol: string; ret: number } => r.ret != null);
@@ -124,15 +126,7 @@ export async function enrichShortlistCharts(symbols: string[]) {
       : [...returns.map((r) => r.ret)].sort((a, b) => a - b)[
           Math.floor(returns.length / 2)
         ];
-  const extras = new Map<
-    string,
-    {
-      relativeReturn3m?: number;
-      universeMedianReturn3m?: number;
-      volatility?: number;
-      quotePatch?: YahooQuote;
-    }
-  >();
+  const extras = new Map<string, ChartExtras>();
   for (const [symbol, pts] of charts) {
     extras.set(symbol, {
       relativeReturn3m: threeMonthReturn(pts),

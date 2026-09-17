@@ -77,6 +77,10 @@ export function HomeClient({
           <div className="text-xs uppercase tracking-[0.18em] text-ink/40">Stocks analyzed</div>
           <div className="mt-1">{scan?.stocksAnalyzed ?? 0}</div>
         </div>
+        <div>
+          <div className="text-xs uppercase tracking-[0.18em] text-ink/40">With fundamentals</div>
+          <div className="mt-1">{scan?.stocksShortlisted ?? 0}</div>
+        </div>
       </section>
 
       {top.length > 0 ? (

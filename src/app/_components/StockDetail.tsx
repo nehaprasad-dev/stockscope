@@ -68,8 +68,8 @@ export function StockDetail({
 
       {!detail ? (
         <p className="max-w-xl text-lg leading-8">
-          This name is in the Nifty 500 list, but it is not in the last scan stored in
-          this browser. Run a scan from the home page first.
+          This name is in the Nifty 500 list, but it is not in the last full scan stored
+          in this browser. Run Scan Nifty 500 from the home page first.
         </p>
       ) : (
         <>

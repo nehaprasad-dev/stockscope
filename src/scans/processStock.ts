@@ -1,13 +1,12 @@
 import {
-  enrichShortlistCharts,
   fundamentalFromQuote,
   medianPE,
   mergeQuote,
   technicalFromQuote,
+  type ChartExtras,
 } from "@/research/collect";
-import type { FundamentalSignals, TechnicalSignals } from "@/research/types";
+import type { EvidenceSource, FundamentalSignals, TechnicalSignals } from "@/research/types";
 import type { YahooQuote } from "@/research/yahoo";
-import { researchShortlist } from "@/research/vaaya";
 import { explainScore } from "@/explanations/explainScore";
 import { fundamentalScore } from "@/scoring/fundamentalScore";
 import { dataConfidence, overallScore, riskScore } from "@/scoring/overallScore";
@@ -21,7 +20,6 @@ export function scoreParts(opts: {
   sector: string | null;
   tech: TechnicalSignals;
   fund: FundamentalSignals;
-  research?: unknown;
 }): StockScanDetail {
   const techResult = technicalScore(opts.tech);
   const fundResult = fundamentalScore(opts.fund);
@@ -57,7 +55,7 @@ export function scoreParts(opts: {
     fundParts: fundResult.components,
   });
   const sources = [...opts.tech.sources, ...opts.fund.sources].filter(
-    (s, i, arr) => arr.findIndex((x) => x.url === s.url) === i,
+    (s, i, arr) => arr.findIndex((x) => x.url === s.url && x.source === s.source) === i,
   );
 
   return {
@@ -84,42 +82,39 @@ export function scoreParts(opts: {
   };
 }
 
-export function cheapScreenScore(tech: TechnicalSignals, fund: FundamentalSignals) {
-  const t = technicalScore(tech).score;
-  const f = fundamentalScore(fund).score;
-  if (t == null && f == null) return -1;
-  if (t == null) return f!;
-  if (f == null) return t;
-  return 0.45 * t + 0.55 * f;
-}
-
-export async function scoreUniverse(opts: {
+export function scoreUniverse(opts: {
   stocks: Array<{ symbol: string; name: string; sector: string | null }>;
   quotes: Map<string, YahooQuote>;
-  shortlist: string[];
-}): Promise<StockScanDetail[]> {
-  const chartNames = opts.shortlist.slice(0, 10);
-  const extras = await enrichShortlistCharts(chartNames);
-  const pe = medianPE(opts.quotes);
-  let research: unknown = null;
-  try {
-    research = await researchShortlist(chartNames);
-  } catch {
-    research = { ok: false, error: "Vaaya research skipped" };
+  extras: Map<string, ChartExtras>;
+  fundQuotes: Map<string, YahooQuote>;
+  fundSources: Map<string, EvidenceSource>;
+}): StockScanDetail[] {
+  const merged = new Map<string, YahooQuote>();
+  for (const stock of opts.stocks) {
+    const extra = opts.extras.get(stock.symbol);
+    const withChart = mergeQuote(opts.quotes.get(stock.symbol), extra?.quotePatch);
+    const withFund = mergeQuote(opts.fundQuotes.get(stock.symbol), withChart);
+    if (withFund) merged.set(stock.symbol, withFund);
   }
+  const pe = medianPE(merged);
 
   return opts.stocks.map((stock) => {
-    const extra = extras.get(stock.symbol);
-    const quote = mergeQuote(opts.quotes.get(stock.symbol), extra?.quotePatch);
+    const extra = opts.extras.get(stock.symbol);
+    const quote = merged.get(stock.symbol);
+    const fundSource = opts.fundSources.get(stock.symbol);
     const tech = technicalFromQuote(stock.symbol, quote, extra);
-    const fund = fundamentalFromQuote(stock.symbol, quote, pe);
+    const fund = fundamentalFromQuote(
+      stock.symbol,
+      quote,
+      pe,
+      fundSource ? [fundSource] : [],
+    );
     return scoreParts({
       symbol: stock.symbol,
       name: stock.name,
       sector: stock.sector,
       tech,
       fund,
-      research: opts.shortlist.includes(stock.symbol) ? research : null,
     });
   });
 }

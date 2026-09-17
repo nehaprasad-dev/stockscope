@@ -1,3 +1,5 @@
+import { mapPool } from "@/lib/pool";
+
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
 
@@ -47,6 +49,7 @@ async function fetchJson(url: string) {
       Accept: "application/json,text/plain,*/*",
     },
     cache: "no-store",
+    signal: AbortSignal.timeout(20000),
   });
   if (!res.ok) throw new Error(`Yahoo request failed ${res.status}`);
   return res.json();
@@ -141,6 +144,67 @@ export async function fetchChartWithMeta(symbol: string): Promise<{
   } catch {
     return { points: [] };
   }
+}
+
+function pointsFromSpark(entry: {
+  close?: Array<number | null>;
+}): ChartPoint[] {
+  return (entry.close ?? [])
+    .map((close) => ({ close: close ?? NaN }))
+    .filter((p) => Number.isFinite(p.close));
+}
+
+function sparkMap(json: Record<string, unknown>) {
+  const out = new Map<string, ChartPoint[]>();
+  const rows =
+    json && typeof json === "object" && !Array.isArray(json)
+      ? Object.entries(json)
+      : [];
+  for (const [key, value] of rows) {
+    if (!value || typeof value !== "object") continue;
+    const nse = key.replace(/\.NS$/i, "");
+    out.set(nse, pointsFromSpark(value as { close?: Array<number | null> }));
+  }
+  return out;
+}
+
+async function sparkRequest(symbols: string[]) {
+  const query = symbols.map((s) => encodeURIComponent(yahooSymbol(s))).join(",");
+  const url = `https://query1.finance.yahoo.com/v8/finance/spark?symbols=${query}&range=1y&interval=1d`;
+  const json = await fetchJson(url);
+  return sparkMap(json as Record<string, unknown>);
+}
+
+async function sparkBatch(symbols: string[]): Promise<Map<string, ChartPoint[]>> {
+  if (symbols.length === 0) return new Map();
+  try {
+    return await sparkRequest(symbols);
+  } catch {
+    if (symbols.length === 1) {
+      const points = await fetchChart(symbols[0]);
+      return new Map([[symbols[0], points]]);
+    }
+    const mid = Math.ceil(symbols.length / 2);
+    const [left, right] = await Promise.all([
+      sparkBatch(symbols.slice(0, mid)),
+      sparkBatch(symbols.slice(mid)),
+    ]);
+    return new Map([...left, ...right]);
+  }
+}
+
+export async function fetchSparks(symbols: string[]) {
+  const size = 12;
+  const batches: string[][] = [];
+  for (let i = 0; i < symbols.length; i += size) {
+    batches.push(symbols.slice(i, i + size));
+  }
+  const parts = await mapPool(batches, 4, (batch) => sparkBatch(batch));
+  const out = new Map<string, ChartPoint[]>();
+  for (const part of parts) {
+    for (const [symbol, points] of part) out.set(symbol, points);
+  }
+  return out;
 }
 
 export function quoteFromChart(symbol: string, points: ChartPoint[]): YahooQuote | null {

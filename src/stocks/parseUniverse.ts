@@ -10,5 +10,10 @@ export type UniverseStock = {
 import universe from "./nifty500.json";
 
 export function parseNifty500Csv(): UniverseStock[] {
-  return universe as UniverseStock[];
+  return (universe as UniverseStock[]).filter(
+    (stock) =>
+      stock.isActive &&
+      !stock.symbol.startsWith("DUMMY") &&
+      !stock.isin?.startsWith("DUM"),
+  );
 }

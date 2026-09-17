@@ -46,6 +46,7 @@ export async function fetchBhavQuotes(symbols: string[]) {
       const res = await fetch(url, {
         headers: { "User-Agent": UA, Accept: "application/zip,*/*" },
         cache: "no-store",
+        signal: AbortSignal.timeout(15000),
       });
       if (!res.ok) continue;
       const zip = await JSZip.loadAsync(await res.arrayBuffer());
