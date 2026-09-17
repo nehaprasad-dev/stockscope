@@ -1,6 +1,6 @@
 import type { EvidenceSource, RankedStock } from "@/research/types";
 
-export const SCAN_STORAGE_KEY = "nifty500-last-scan";
+export const SCAN_STORAGE_KEY = "nifty500-last-scan-v2";
 
 export type StockScanDetail = RankedStock & {
   standout: string[];
