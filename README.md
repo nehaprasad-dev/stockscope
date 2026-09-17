@@ -45,7 +45,7 @@ Nifty 500 list
     → rank + explain
 ```
 
-Vaaya is **required**. A scan does not finish without it. That is two paid calls per scan, not 500. Add credits at https://vaaya.ai/balance.
+Vaaya is **required** on the server. End users do not pay. There is **no public Vaaya API to create a Vaaya/x402 account per person**, so we do not invent one. Continue with Google creates an **app user**. Scans call Vaaya in the background with the **operator** `VAAYA_API_KEY`. Add operator credits at https://vaaya.ai/balance.
 
 There are no 1 / 10 / 50 demo scan sizes. Top 10 / 25 / 50 on the home page are filters on the ranked full index.
 
@@ -85,9 +85,13 @@ Open [http://localhost:3000](http://localhost:3000).
 DATABASE_URL="file:./dev.db"
 VAAYA_API_KEY=
 VAAYA_API_URL="https://vaaya.ai/api/run"
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
 ```
 
-SQLite file lands at `prisma/dev.db`. Do not commit `.env`. **Vaaya is required** — add credits at https://vaaya.ai/balance.
+Auth is **Clerk**, not Google Cloud OAuth. Create an app at [dashboard.clerk.com](https://dashboard.clerk.com), copy the two Clerk keys, and turn on **Google** under User & authentication → Social connections. Clerk owns the Google client — you do not add `AUTH_GOOGLE_ID`.
+
+SQLite file lands at `prisma/dev.db`. Do not commit `.env`. Operator Vaaya credits: https://vaaya.ai/balance. Users are not billed.
 
 Useful extras:
 
@@ -104,10 +108,10 @@ Vercel has **no local sqlite file**, and `/tmp` sqlite is not shared between pag
 
 This app:
 
-- seeds the Nifty 500 list from the bundled JSON
-- runs the scan in the API request and **keeps the ranked table in your browser**
+- Continue with Google, then **Scan Nifty 500**
+- ranked results stay in the browser
 
-After deploy, set `VAAYA_API_KEY` on Vercel, add Vaaya credits, then click **Scan Nifty 500**.
+Set `VAAYA_API_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, and `CLERK_SECRET_KEY` on Vercel. In the Clerk dashboard, add the production domain. Keep the operator Vaaya wallet funded. Users are not asked to pay.
 
 ---
 
