@@ -3,23 +3,24 @@
 import { Disclaimer } from "./Disclaimer";
 import { Filters } from "./Filters";
 import { RankTable } from "./RankTable";
-import { ScanButton } from "./ScanButton";
 import { ScoreMeter } from "./Marks";
 import { formatStamp } from "@/lib/dates";
 import { loadScan } from "@/scans/clientStore";
 import type { ScanPayload } from "@/scans/types";
 import type { RankedStock } from "@/research/types";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 export function HomeClient({
   universeCount,
   view,
   sort,
+  children,
 }: {
   universeCount: number;
   view: "all" | "10" | "25" | "50";
   sort: "overall" | "technical" | "fundamental";
+  children: ReactNode;
 }) {
   const [scan, setScan] = useState<ScanPayload | null>(null);
 
@@ -61,11 +62,10 @@ export function HomeClient({
           </h1>
           <p className="mt-6 max-w-md text-[17px] leading-8 text-ink/60">
             Scan the index. Score technical and fundamental signals. Rank who actually
-            stands out — with sources, not a buy button.
+            stands out — with sources, not a buy button. Continue with Google. It is
+            free for now.
           </p>
-          <div className="mt-9">
-            <ScanButton />
-          </div>
+          <div className="mt-9">{children}</div>
         </div>
 
         <div className="overflow-hidden rounded-[28px] border border-line bg-white shadow-[0_24px_80px_-32px_rgba(20,50,92,0.35)]">
