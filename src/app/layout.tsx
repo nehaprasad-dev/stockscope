@@ -1,6 +1,8 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { DM_Sans, Instrument_Serif } from "next/font/google";
 import Link from "next/link";
+import { AuthBar } from "./_components/AuthBar";
 import "./globals.css";
 
 const sans = DM_Sans({
@@ -24,26 +26,31 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${sans.variable} ${serif.variable} h-full antialiased`}>
       <body className="relative min-h-full bg-paper text-ink">
-        <div className="relative z-10 mx-auto flex min-h-full max-w-6xl flex-col px-6 sm:px-10">
-          <header className="flex items-center justify-between gap-6 py-6">
-            <Link href="/" className="flex items-center gap-2.5 text-sm font-medium tracking-tight">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-navy text-[11px] tracking-wide text-paper">
-                N
-              </span>
-              Nifty 500
-            </Link>
-            <Link
-              href="/methodology"
-              className="text-sm text-ink/55 transition-colors hover:text-navy"
-            >
-              Methodology
-            </Link>
-          </header>
-          <main className="flex-1 pb-16 pt-4 sm:pt-8">{children}</main>
-          <footer className="border-t border-line py-8 text-xs text-ink/40">
-            Research only — not investment advice.
-          </footer>
-        </div>
+        <ClerkProvider appearance={{ variables: { colorPrimary: "#14325c" } }}>
+          <div className="relative z-10 mx-auto flex min-h-full max-w-6xl flex-col px-6 sm:px-10">
+            <header className="flex items-center justify-between gap-6 py-6">
+              <Link href="/" className="flex items-center gap-2.5 text-sm font-medium tracking-tight">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-navy text-[11px] tracking-wide text-paper">
+                  N
+                </span>
+                Nifty 500
+              </Link>
+              <div className="flex items-center gap-6">
+                <Link
+                  href="/methodology"
+                  className="text-sm text-ink/55 transition-colors hover:text-navy"
+                >
+                  Methodology
+                </Link>
+                <AuthBar />
+              </div>
+            </header>
+            <main className="flex-1 pb-16 pt-4 sm:pt-8">{children}</main>
+            <footer className="border-t border-line py-8 text-xs text-ink/40">
+              Research only — not investment advice.
+            </footer>
+          </div>
+        </ClerkProvider>
       </body>
     </html>
   );
