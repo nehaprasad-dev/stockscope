@@ -27,6 +27,12 @@ export default function MethodologyPage() {
         </li>
         <li>Score with TypeScript. Missing fields are skipped, never invented.</li>
         <li>
+          Continue with Google (Clerk) creates an app user. Access is free for now — we do
+          not charge you. Vaaya calls run in the background on the platform wallet.
+          There is no public Vaaya API to open a separate Vaaya/x402 account per
+          person, so we do not invent one.
+        </li>
+        <li>
           Send a shortlist of about 30 names to Vaaya: one batched quote read, plus one
           web/news research call with cited URLs. That is required. The model explains
           and cites; it does not invent the 0–100 score.
@@ -58,8 +64,9 @@ export default function MethodologyPage() {
         If a name is missing there, Tickertape ratios are used when present. Vaaya then
         runs on the shortlist for batched quotes and cited news/research. Screener,
         Trendlyne, NSE quote pages, and Indian Stock Picker are linked for further
-        reading. Those sites are not scraped for scoring. A scan does not finish if
-        Vaaya credits are missing.
+        reading. Those sites are not scraped for scoring. End users are not billed.
+        If the platform Vaaya wallet is empty, scanning pauses until the operator
+        tops it up — you will not be sent a payment link.
       </p>
     </article>
   );
