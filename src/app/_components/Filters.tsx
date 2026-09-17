@@ -21,27 +21,27 @@ export function Filters({
   sort: string;
 }) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-wrap gap-1 rounded-full bg-white p-1 ring-1 ring-line">
         {VIEWS.map((item) => (
           <Link
             key={item.id}
             href={`/?view=${item.id}&sort=${sort}`}
-            className={`rounded-full px-3 py-1 text-xs tracking-wide ${
-              view === item.id ? "bg-ink text-paper" : "border border-line text-ink/70"
+            className={`rounded-full px-3.5 py-1.5 text-xs transition ${
+              view === item.id ? "bg-navy text-paper" : "text-ink/60 hover:text-navy"
             }`}
           >
             {item.label}
           </Link>
         ))}
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1 rounded-full bg-white p-1 ring-1 ring-line">
         {SORTS.map((item) => (
           <Link
             key={item.id}
             href={`/?view=${view}&sort=${item.id}`}
-            className={`rounded-full px-3 py-1 text-xs tracking-wide ${
-              sort === item.id ? "bg-ink text-paper" : "border border-line text-ink/70"
+            className={`rounded-full px-3.5 py-1.5 text-xs transition ${
+              sort === item.id ? "bg-navy text-paper" : "text-ink/60 hover:text-navy"
             }`}
           >
             {item.label}

@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #f3efe6;
-  --ink: #1c1915;
-  --rust: #c45c26;
-  --line: rgba(28, 25, 21, 0.14);
-  --muted: #8a8174;
+  --paper: #fbfbfc;
+  --ink: #0f1218;
+  --navy: #14325c;
+  --line: #e8eaee;
+  --muted: #6b7280;
 }
 
 @theme inline {
   --color-paper: var(--paper);
   --color-ink: var(--ink);
-  --color-rust: var(--rust);
+  --color-navy: var(--navy);
   --color-line: var(--line);
   --color-muted: var(--muted);
   --font-sans: var(--font-dm-sans);
@@ -26,6 +26,18 @@ body {
 
 body {
   font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+body::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  top: -120px;
+  right: -80px;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(20, 50, 92, 0.09), transparent 68%);
+  z-index: 0;
 }
 
 .font-serif {

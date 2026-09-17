@@ -4,6 +4,7 @@ import { Disclaimer } from "./Disclaimer";
 import { Filters } from "./Filters";
 import { RankTable } from "./RankTable";
 import { ScanButton } from "./ScanButton";
+import { ScoreMeter } from "./Marks";
 import { formatStamp } from "@/lib/dates";
 import { loadScan } from "@/scans/clientStore";
 import type { ScanPayload } from "@/scans/types";
@@ -49,64 +50,85 @@ export function HomeClient({
   const top = rows.filter((r) => r.overallScore != null).slice(0, 3);
 
   return (
-    <div className="flex flex-col gap-12">
-      <section className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+    <div className="flex flex-col gap-20">
+      <section className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
         <div>
-          <p className="text-xs uppercase tracking-[0.28em] text-rust">Nifty 500</p>
-          <h1 className="mt-3 font-serif text-5xl leading-[1.05] sm:text-6xl">
-            Nifty 500 Stock Scanner
+          <p className="text-[13px] tracking-wide text-navy">Nifty 500 · research ranking</p>
+          <h1 className="font-serif mt-5 max-w-xl text-[3.4rem] leading-[1.05] tracking-tight sm:text-7xl">
+            See which stocks
+            <br />
+            stand out.
           </h1>
-          <p className="mt-5 max-w-xl text-lg leading-8 text-ink/70">
-            Research the Nifty 500 using technical and fundamental signals, then see
-            which stocks stand out.
+          <p className="mt-6 max-w-md text-[17px] leading-8 text-ink/60">
+            Scan the index. Score technical and fundamental signals. Rank who actually
+            stands out — with sources, not a buy button.
+          </p>
+          <div className="mt-9">
+            <ScanButton />
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-[28px] border border-line bg-white shadow-[0_24px_80px_-32px_rgba(20,50,92,0.35)]">
+          <div className="flex items-center justify-between border-b border-line bg-[#f6f7f9] px-5 py-3">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-navy/25" />
+              <span className="h-2 w-2 rounded-full bg-navy/15" />
+              <span className="h-2 w-2 rounded-full bg-navy/10" />
+            </div>
+            <p className="text-xs text-ink/45">Today’s ranking</p>
+          </div>
+          <div className="grid grid-cols-3 gap-px border-b border-line bg-line text-center">
+            <div className="bg-white px-4 py-4">
+              <div className="text-[11px] text-ink/40">Universe</div>
+              <div className="mt-1 text-lg font-medium">{universeCount}</div>
+            </div>
+            <div className="bg-white px-4 py-4">
+              <div className="text-[11px] text-ink/40">Analyzed</div>
+              <div className="mt-1 text-lg font-medium">{scan?.stocksAnalyzed ?? 0}</div>
+            </div>
+            <div className="bg-white px-4 py-4">
+              <div className="text-[11px] text-ink/40">Vaaya</div>
+              <div className="mt-1 text-lg font-medium">{scan?.stocksShortlisted ?? 0}</div>
+            </div>
+          </div>
+          <div className="px-5 py-2">
+            {top.length > 0 ? (
+              top.map((row) => (
+                <Link
+                  key={row.symbol}
+                  href={`/stocks/${row.symbol}`}
+                  className="block border-b border-line/80 py-4 last:border-0"
+                >
+                  <div className="flex items-baseline justify-between gap-4">
+                    <div>
+                      <span className="mr-3 text-xs text-ink/35">{row.rank}</span>
+                      <span className="font-medium">{row.symbol}</span>
+                    </div>
+                    <span className="font-serif text-2xl">
+                      {Math.round(row.overallScore ?? 0)}
+                    </span>
+                  </div>
+                  <div className="mt-2">
+                    <ScoreMeter value={row.overallScore} />
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <p className="py-10 text-center text-sm text-ink/45">
+                Run a scan to fill this ranking.
+              </p>
+            )}
+          </div>
+          <p className="border-t border-line px-5 py-3 text-[11px] text-ink/40">
+            Last scan {formatStamp(scan?.completedAt) ?? "not yet"}
           </p>
         </div>
-        <ScanButton />
       </section>
 
-      <section className="flex flex-wrap gap-8 border-y border-line py-6 text-sm">
-        <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-ink/40">Last updated</div>
-          <div className="mt-1">{formatStamp(scan?.completedAt) ?? "Not scanned yet"}</div>
+      <section className="flex flex-col gap-8">
+        <div className="flex items-end justify-between gap-4">
+          <h2 className="font-serif text-3xl tracking-tight">The ranking</h2>
         </div>
-        <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-ink/40">Universe</div>
-          <div className="mt-1">{universeCount} companies</div>
-        </div>
-        <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-ink/40">Stocks analyzed</div>
-          <div className="mt-1">{scan?.stocksAnalyzed ?? 0}</div>
-        </div>
-        <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-ink/40">Vaaya shortlist</div>
-          <div className="mt-1">{scan?.stocksShortlisted ?? 0}</div>
-        </div>
-      </section>
-
-      {top.length > 0 ? (
-        <section>
-          <h2 className="text-xs uppercase tracking-[0.22em] text-ink/45">Top stocks</h2>
-          <ol className="mt-5 grid gap-4">
-            {top.map((row) => (
-              <li key={row.symbol}>
-                <Link
-                  href={`/stocks/${row.symbol}`}
-                  className="flex items-baseline justify-between gap-4 border-b border-line py-3"
-                >
-                  <div>
-                    <span className="mr-3 text-ink/40">{row.rank}</span>
-                    <span className="font-medium">{row.symbol}</span>
-                    <p className="mt-1 max-w-xl text-sm text-ink/55">{row.reason}</p>
-                  </div>
-                  <div className="font-serif text-3xl">{Math.round(row.overallScore ?? 0)}</div>
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </section>
-      ) : null}
-
-      <section className="flex flex-col gap-6">
         <Filters view={view} sort={sort} />
         <RankTable rows={rows} />
       </section>

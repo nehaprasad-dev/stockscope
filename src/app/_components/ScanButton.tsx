@@ -59,17 +59,17 @@ export function ScanButton() {
         type="button"
         onClick={start}
         disabled={running}
-        className="rounded-full bg-rust px-6 py-3 text-sm font-medium text-paper disabled:opacity-60"
+        className="w-fit rounded-full bg-navy px-6 py-3 text-sm font-medium text-paper shadow-[0_10px_30px_-12px_rgba(20,50,92,0.7)] transition hover:bg-navy/90 disabled:opacity-60"
       >
         {running ? phase ?? "Scanning…" : "Scan Nifty 500"}
       </button>
       {error ? (
-        <p className="text-sm text-rust">
+        <p className="max-w-sm text-sm text-ink/80">
           {error.replace("https://vaaya.ai/balance", "").trim()}{" "}
           {error.includes("vaaya.ai/balance") ? (
             <a
               href="https://vaaya.ai/balance"
-              className="underline underline-offset-4"
+              className="text-navy underline underline-offset-4"
               target="_blank"
               rel="noreferrer"
             >
@@ -78,10 +78,8 @@ export function ScanButton() {
           ) : null}
         </p>
       ) : null}
-      <p className="max-w-md text-xs leading-5 text-ink/55">
-        Always scans the full index, then Vaaya research on a shortlist of names that
-        already stand out. Scores stay deterministic. Missing fields stay blank. Results
-        stay in this browser.
+      <p className="max-w-sm text-[13px] leading-6 text-ink/45">
+        Full index first. Vaaya research on the shortlist. Missing fields stay blank.
       </p>
     </div>
   );

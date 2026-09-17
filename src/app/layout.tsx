@@ -23,18 +23,24 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${sans.variable} ${serif.variable} h-full antialiased`}>
-      <body className="min-h-full bg-paper text-ink">
-        <div className="mx-auto flex min-h-full max-w-5xl flex-col px-5 py-6 sm:px-8">
-          <header className="flex items-baseline justify-between gap-4 border-b border-line pb-4">
-            <Link href="/" className="text-xs uppercase tracking-[0.28em]">
-              Nifty 500 Scanner
+      <body className="relative min-h-full bg-paper text-ink">
+        <div className="relative z-10 mx-auto flex min-h-full max-w-6xl flex-col px-6 sm:px-10">
+          <header className="flex items-center justify-between gap-6 py-6">
+            <Link href="/" className="flex items-center gap-2.5 text-sm font-medium tracking-tight">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-navy text-[11px] tracking-wide text-paper">
+                N
+              </span>
+              Nifty 500
             </Link>
-            <Link href="/methodology" className="text-xs text-ink/55">
+            <Link
+              href="/methodology"
+              className="text-sm text-ink/55 transition-colors hover:text-navy"
+            >
               Methodology
             </Link>
           </header>
-          <main className="flex-1 py-10">{children}</main>
-          <footer className="border-t border-line py-6 text-xs text-ink/45">
+          <main className="flex-1 pb-16 pt-4 sm:pt-8">{children}</main>
+          <footer className="border-t border-line py-8 text-xs text-ink/40">
             Research only — not investment advice.
           </footer>
         </div>
