@@ -5,6 +5,7 @@ import { ScoreMeter, SignalBadge } from "./Marks";
 import { formatStamp } from "@/lib/dates";
 import { loadScan } from "@/scans/clientStore";
 import { confidenceLabel, signalLabel } from "@/scoring/math";
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { StockScanDetail } from "@/scans/types";
@@ -30,12 +31,17 @@ export function StockDetail({
   name: string;
   sector: string;
 }) {
+  const { isSignedIn } = useAuth();
   const [detail, setDetail] = useState<StockScanDetail | null | undefined>(undefined);
 
   useEffect(() => {
+    if (!isSignedIn) {
+      setDetail(null);
+      return;
+    }
     const scan = loadScan();
     setDetail(scan?.details?.[symbol] ?? null);
-  }, [symbol]);
+  }, [symbol, isSignedIn]);
 
   if (detail === undefined) {
     return <p className="text-sm text-ink/55">Loading…</p>;

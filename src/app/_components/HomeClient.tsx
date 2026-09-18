@@ -8,6 +8,7 @@ import { formatStamp } from "@/lib/dates";
 import { loadScan } from "@/scans/clientStore";
 import type { ScanPayload } from "@/scans/types";
 import type { RankedStock } from "@/research/types";
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -22,9 +23,14 @@ export function HomeClient({
   sort: "overall" | "technical" | "fundamental";
   children: ReactNode;
 }) {
+  const { isSignedIn } = useAuth();
   const [scan, setScan] = useState<ScanPayload | null>(null);
 
   useEffect(() => {
+    if (!isSignedIn) {
+      setScan(null);
+      return;
+    }
     const read = () => setScan(loadScan());
     read();
     window.addEventListener("nifty500-scan", read);
@@ -33,7 +39,7 @@ export function HomeClient({
       window.removeEventListener("nifty500-scan", read);
       window.removeEventListener("storage", read);
     };
-  }, []);
+  }, [isSignedIn]);
 
   const ranked = [...(scan?.ranked ?? [])]
     .sort((a, b) => {
@@ -115,14 +121,18 @@ export function HomeClient({
               ))
             ) : (
               <p className="py-10 text-center text-sm text-ink/45">
-                Run a scan to fill this ranking.
+                {isSignedIn
+                  ? "Click Scan Nifty 500 to fill this ranking."
+                  : "Continue with Google, then scan to see who stands out."}
               </p>
             )}
           </div>
           <p className="border-t border-line px-5 py-3 text-[11px] text-ink/40">
-            {scan?.completedAt
+            {isSignedIn && scan?.completedAt
               ? `Last scan on this browser · ${formatStamp(scan.completedAt)}`
-              : "No scan on this browser yet"}
+              : isSignedIn
+                ? "No scan yet — click Scan Nifty 500"
+                : "Sign in to run a scan"}
           </p>
         </div>
       </section>
