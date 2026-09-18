@@ -5,7 +5,7 @@ import { Filters } from "./Filters";
 import { RankTable } from "./RankTable";
 import { ScoreMeter } from "./Marks";
 import { formatStamp } from "@/lib/dates";
-import { loadScan } from "@/scans/clientStore";
+import { loadVisibleScan } from "@/scans/clientStore";
 import type { ScanPayload } from "@/scans/types";
 import type { RankedStock } from "@/research/types";
 import { useAuth } from "@clerk/nextjs";
@@ -31,7 +31,7 @@ export function HomeClient({
       setScan(null);
       return;
     }
-    const read = () => setScan(loadScan());
+    const read = () => setScan(loadVisibleScan());
     read();
     window.addEventListener("nifty500-scan", read);
     window.addEventListener("storage", read);
@@ -81,7 +81,7 @@ export function HomeClient({
               <span className="h-2 w-2 rounded-full bg-navy/15" />
               <span className="h-2 w-2 rounded-full bg-navy/10" />
             </div>
-            <p className="text-xs text-ink/45">This browser</p>
+            <p className="text-xs text-ink/45">Vaaya</p>
           </div>
           <div className="grid grid-cols-3 gap-px border-b border-line bg-line text-center">
             <div className="bg-white px-4 py-4">

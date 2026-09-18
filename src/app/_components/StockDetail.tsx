@@ -3,7 +3,7 @@
 import { Disclaimer } from "./Disclaimer";
 import { ScoreMeter, SignalBadge } from "./Marks";
 import { formatStamp } from "@/lib/dates";
-import { loadScan } from "@/scans/clientStore";
+import { loadVisibleScan } from "@/scans/clientStore";
 import { confidenceLabel, signalLabel } from "@/scoring/math";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
@@ -39,7 +39,7 @@ export function StockDetail({
       setDetail(null);
       return;
     }
-    const scan = loadScan();
+    const scan = loadVisibleScan();
     setDetail(scan?.details?.[symbol] ?? null);
   }, [symbol, isSignedIn]);
 

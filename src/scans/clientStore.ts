@@ -1,6 +1,8 @@
 import type { ScanPayload } from "./types";
 import { SCAN_STORAGE_KEY } from "./types";
 
+const SCAN_SESSION_KEY = "nifty500-scan-shown-v1";
+
 export function loadScan(): ScanPayload | null {
   if (typeof window === "undefined") return null;
   try {
@@ -12,9 +14,20 @@ export function loadScan(): ScanPayload | null {
   }
 }
 
+export function loadVisibleScan(): ScanPayload | null {
+  if (typeof window === "undefined") return null;
+  try {
+    if (sessionStorage.getItem(SCAN_SESSION_KEY) !== "1") return null;
+  } catch {
+    return null;
+  }
+  return loadScan();
+}
+
 export function saveScan(payload: ScanPayload) {
   try {
     window.localStorage.setItem(SCAN_STORAGE_KEY, JSON.stringify(payload));
+    sessionStorage.setItem(SCAN_SESSION_KEY, "1");
     window.dispatchEvent(new Event("nifty500-scan"));
   } catch {
     throw new Error("Scan finished but this browser could not store the results.");

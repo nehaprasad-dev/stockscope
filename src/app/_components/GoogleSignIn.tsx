@@ -31,8 +31,7 @@ export function GoogleSignIn({ compact = false }: { compact?: boolean }) {
       </SignInButton>
       {compact ? null : (
         <p className="mt-3 max-w-sm text-[13px] leading-6 text-ink/45">
-          Free for now. No payment. Sign in through Clerk, then scan. Results are
-          cached so Vaaya credits are not spent per user.
+          Sign in with Google, then scan to see who stands out.
         </p>
       )}
     </div>

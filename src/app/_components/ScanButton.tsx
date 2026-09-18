@@ -62,10 +62,6 @@ export function ScanButton() {
         {running ? phase ?? "Scanning…" : "Scan Nifty 500"}
       </button>
       {error ? <p className="max-w-sm text-sm text-ink/80">{error}</p> : null}
-      <p className="max-w-sm text-[13px] leading-6 text-ink/45">
-        Free for now. Vaaya is off so credits stay put. One shared ranking is cached;
-        after a short fetch you get four distinct listings.
-      </p>
     </div>
   );
 }
