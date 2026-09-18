@@ -48,7 +48,7 @@ export function HomeClient({
 
   const limit = view === "all" ? ranked.length : Number(view);
   const rows = ranked.slice(0, limit || ranked.length);
-  const top = rows.filter((r) => r.overallScore != null).slice(0, 3);
+  const top = rows.filter((r) => r.overallScore != null).slice(0, 4);
 
   return (
     <div className="flex flex-col gap-20">
@@ -87,8 +87,8 @@ export function HomeClient({
               <div className="mt-1 text-lg font-medium">{scan?.stocksAnalyzed ?? 0}</div>
             </div>
             <div className="bg-white px-4 py-4">
-              <div className="text-[11px] text-ink/40">Vaaya</div>
-              <div className="mt-1 text-lg font-medium">{scan?.stocksShortlisted ?? 0}</div>
+              <div className="text-[11px] text-ink/40">Listings</div>
+              <div className="mt-1 text-lg font-medium">{top.length}</div>
             </div>
           </div>
           <div className="px-5 py-2">
