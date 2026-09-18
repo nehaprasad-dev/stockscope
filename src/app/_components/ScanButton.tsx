@@ -53,14 +53,17 @@ export function ScanButton() {
 
   return (
     <div className="flex flex-col gap-3">
-      <button
-        type="button"
-        onClick={start}
-        disabled={running}
-        className="w-fit rounded-full bg-navy px-6 py-3 text-sm font-medium text-paper shadow-[0_10px_30px_-12px_rgba(20,50,92,0.7)] transition hover:bg-navy/90 disabled:opacity-60"
-      >
-        {running ? phase ?? "Scanning…" : "Scan Nifty 500"}
-      </button>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <button
+          type="button"
+          onClick={start}
+          disabled={running}
+          className="w-fit rounded-full bg-navy px-6 py-3 text-sm font-medium text-paper shadow-[0_10px_30px_-12px_rgba(20,50,92,0.7)] transition hover:bg-navy/90 disabled:opacity-60"
+        >
+          {running ? phase ?? "Scanning…" : "Scan Nifty 500"}
+        </button>
+        <p className="text-sm text-ink/55">Vaaya API also working</p>
+      </div>
       {error ? <p className="max-w-sm text-sm text-ink/80">{error}</p> : null}
     </div>
   );
