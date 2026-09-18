@@ -57,7 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line py-8 text-xs text-ink/40">
               <span>Research only — not investment advice.</span>
               <a
-                href="https://github.com/nehaprasad-dev"
+                href="https://github.com/nehaprasad-dev/stockscope"
                 className="text-ink/55 transition-colors hover:text-navy"
                 target="_blank"
                 rel="noreferrer"
