@@ -6,12 +6,11 @@ import { useState } from "react";
 
 const PHASES = [
   "Fetching Nifty 500 prices...",
-  "Building one-year charts...",
-  "Checking fundamentals...",
-  "Vaaya research on the shortlist...",
+  "Building charts and fundamentals...",
+  "Preparing the top 4 listings...",
 ];
 
-export function ScanButton({ scansLeft }: { scansLeft: number }) {
+export function ScanButton() {
   const [phase, setPhase] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const running = phase != null;
@@ -23,7 +22,7 @@ export function ScanButton({ scansLeft }: { scansLeft: number }) {
     const timer = setInterval(() => {
       i = Math.min(i + 1, PHASES.length - 1);
       setPhase(PHASES[i]);
-    }, 4000);
+    }, 900);
 
     try {
       const res = await fetch("/api/scan", {
@@ -41,6 +40,8 @@ export function ScanButton({ scansLeft }: { scansLeft: number }) {
         setError(body.error ?? scan?.error ?? "Scan could not finish.");
         return;
       }
+      setPhase(PHASES[2]);
+      await new Promise((resolve) => setTimeout(resolve, 2500));
       saveScan(scan);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Scan could not start.");
@@ -62,8 +63,8 @@ export function ScanButton({ scansLeft }: { scansLeft: number }) {
       </button>
       {error ? <p className="max-w-sm text-sm text-ink/80">{error}</p> : null}
       <p className="max-w-sm text-[13px] leading-6 text-ink/45">
-        Free for now — {scansLeft} scan{scansLeft === 1 ? "" : "s"} left today. Full
-        index first, then Vaaya in the background. Ranking stays in this browser.
+        Free for now. Vaaya is off so credits stay put. One shared ranking is cached;
+        after a short fetch you get four distinct listings.
       </p>
     </div>
   );
