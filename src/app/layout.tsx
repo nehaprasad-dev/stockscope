@@ -42,12 +42,28 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 >
                   Methodology
                 </Link>
+                <a
+                  href="https://github.com/nehaprasad-dev"
+                  className="text-sm text-ink/55 transition-colors hover:text-navy"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  GitHub
+                </a>
                 <AuthBar />
               </div>
             </header>
             <main className="flex-1 pb-16 pt-4 sm:pt-8">{children}</main>
-            <footer className="border-t border-line py-8 text-xs text-ink/40">
-              Research only — not investment advice.
+            <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line py-8 text-xs text-ink/40">
+              <span>Research only — not investment advice.</span>
+              <a
+                href="https://github.com/nehaprasad-dev"
+                className="text-ink/55 transition-colors hover:text-navy"
+                target="_blank"
+                rel="noreferrer"
+              >
+                github.com/nehaprasad-dev
+              </a>
             </footer>
           </div>
         </ClerkProvider>

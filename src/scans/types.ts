@@ -21,6 +21,7 @@ export type ScanPayload = {
   completedAt: string | null;
   error?: string;
   creditsUrl?: string;
+  vaayaUsed?: boolean;
   ranked: RankedStock[];
   details: Record<string, StockScanDetail>;
 };

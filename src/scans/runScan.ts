@@ -1,6 +1,8 @@
 import { collectQuotes, extrasFromCharts, mergeQuote } from "@/research/collect";
 import { fetchGrowwFundamentals } from "@/research/groww";
 import { researchShortlist, VaayaRequiredError } from "@/research/vaaya";
+import type { EvidenceSource } from "@/research/types";
+import type { YahooQuote } from "@/research/yahoo";
 import { fetchSparks } from "@/research/yahoo";
 import { parseNifty500Csv } from "@/stocks/parseUniverse";
 import { rankStocks } from "@/scoring/rankStocks";
@@ -49,7 +51,17 @@ export async function runScan(opts?: { userId?: string }): Promise<ScanPayload> 
       .slice(0, VAAYA_SHORTLIST)
       .map((row) => row.symbol);
 
-    const vaaya = await researchShortlist(shortlist, opts?.userId);
+    let vaaya = {
+      quotes: new Map<string, YahooQuote>(),
+      research: new Map<string, { notes: string[]; sources: EvidenceSource[] }>(),
+    };
+    let vaayaUsed = false;
+    try {
+      vaaya = await researchShortlist(shortlist, opts?.userId);
+      vaayaUsed = true;
+    } catch (error) {
+      console.error("Vaaya shortlist skipped; ranking still returned", error);
+    }
     const fundQuotes = new Map(groww.quotes);
     for (const [symbol, quote] of vaaya.quotes) {
       fundQuotes.set(symbol, mergeQuote(fundQuotes.get(symbol), quote) ?? quote);
@@ -92,10 +104,13 @@ export async function runScan(opts?: { userId?: string }): Promise<ScanPayload> 
 
     return {
       status: "completed",
-      phase: `${universe.length} stocks analyzed, ${shortlist.length} sent to Vaaya`,
+      phase: vaayaUsed
+        ? `${universe.length} stocks analyzed, ${shortlist.length} sent to Vaaya`
+        : `${universe.length} stocks analyzed. Shortlist research skipped; ranking is still free.`,
       stocksAnalyzed: universe.length,
-      stocksShortlisted: shortlist.length,
+      stocksShortlisted: vaayaUsed ? shortlist.length : 0,
       completedAt: new Date().toISOString(),
+      vaayaUsed,
       ranked,
       details,
     };

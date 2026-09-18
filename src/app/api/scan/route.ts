@@ -6,13 +6,9 @@ import {
 } from "@/auth/quota";
 import { ensureAppUser } from "@/auth/ensureUser";
 import { runScan } from "@/scans/runScan";
-import { VaayaRequiredError } from "@/research/vaaya";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
-
-const UNAVAILABLE =
-  "Research is temporarily unavailable. Try again later — this product is free, so you are not asked to pay.";
 
 export async function GET() {
   return Response.json({
@@ -44,22 +40,15 @@ export async function POST() {
     const scan = await runScan({ userId });
     await recordUserScan(userId, scan.status);
     if (scan.status === "failed") {
-      const operatorIssue = Boolean(scan.creditsUrl);
       return Response.json(
-        {
-          error: operatorIssue ? UNAVAILABLE : (scan.error ?? "Scan failed"),
-          scan: { ...scan, creditsUrl: undefined },
-        },
-        { status: operatorIssue ? 503 : 502 },
+        { error: scan.error ?? "Scan failed", scan: { ...scan, creditsUrl: undefined } },
+        { status: 502 },
       );
     }
     return Response.json({ scan: { ...scan, creditsUrl: undefined } });
   } catch (error) {
     if (error instanceof ScanQuotaError) {
       return Response.json({ error: error.message }, { status: 429 });
-    }
-    if (error instanceof VaayaRequiredError) {
-      return Response.json({ error: UNAVAILABLE }, { status: 503 });
     }
     return Response.json(
       { error: error instanceof Error ? error.message : "Scan could not finish." },
